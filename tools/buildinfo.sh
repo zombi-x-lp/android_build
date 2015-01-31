@@ -56,7 +56,7 @@ if [ "$TARGET_UNIFIED_DEVICE" == "" ] ; then
 fi
 echo "ro.build.characteristics=$TARGET_AAPT_CHARACTERISTICS"
 
-# Omni properties
-echo "ro.omni.device=$OMNI_DEVICE"
+# Zombi properties
+echo "ro.zombi.device=$ZOMBI_DEVICE"
 
 echo "# end build properties"
