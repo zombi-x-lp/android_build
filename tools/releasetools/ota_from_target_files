@@ -597,7 +597,7 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
   script.Print("# /_____ \____/|__|_|  /___  /__| #");
   script.Print("#       \/           \/    \/     #");
   script.Print("#                                 #");
-  script.Print("####################################");
+  script.Print("###################################");
 
   system_progress = 0.75
 
