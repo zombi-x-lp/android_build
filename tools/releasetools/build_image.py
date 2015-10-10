@@ -160,7 +160,7 @@ def MakeVerityEnabledImage(out_file, prop_dict):
   # get properties
   image_size = prop_dict["partition_size"]
   block_dev = prop_dict["verity_block_device"]
-  signer_key = prop_dict["verity_key"]
+  signer_key = prop_dict["verity_key"] + ".pk8"
   signer_path = prop_dict["verity_signer_cmd"]
 
   # make a tempdir
@@ -240,6 +240,8 @@ def BuildImage(in_dir, prop_dict, out_file,
     build_command.extend([in_dir, out_file, fs_type,
                           prop_dict["mount_point"]])
     build_command.append(prop_dict["partition_size"])
+    if "journal_size" in prop_dict:
+      build_command.extend(["-j", prop_dict["journal_size"]])
     if "timestamp" in prop_dict:
       build_command.extend(["-T", str(prop_dict["timestamp"])])
     if fs_config is not None:
@@ -319,6 +321,7 @@ def ImagePropFromGlobalDict(glob_dict, mount_point):
   if mount_point == "system":
     copy_prop("fs_type", "fs_type")
     copy_prop("system_size", "partition_size")
+    copy_prop("system_journal_size", "journal_size")
     copy_prop("system_verity_block_device", "verity_block_device")
   elif mount_point == "data":
     # Copy the generic fs type first, override with specific one if available.
@@ -331,10 +334,12 @@ def ImagePropFromGlobalDict(glob_dict, mount_point):
   elif mount_point == "vendor":
     copy_prop("vendor_fs_type", "fs_type")
     copy_prop("vendor_size", "partition_size")
+    copy_prop("vendor_journal_size", "journal_size")
     copy_prop("vendor_verity_block_device", "verity_block_device")
   elif mount_point == "oem":
     copy_prop("fs_type", "fs_type")
     copy_prop("oem_size", "partition_size")
+    copy_prop("oem_journal_size", "journal_size")
 
   return d
 
@@ -363,23 +368,28 @@ def main(argv):
   out_file = argv[2]
 
   glob_dict = LoadGlobalDict(glob_dict_file)
-  image_filename = os.path.basename(out_file)
-  mount_point = ""
-  if image_filename == "system.img":
-    mount_point = "system"
-  elif image_filename == "userdata.img":
-    mount_point = "data"
-  elif image_filename == "cache.img":
-    mount_point = "cache"
-  elif image_filename == "vendor.img":
-    mount_point = "vendor"
-  elif image_filename == "oem.img":
-    mount_point = "oem"
+  if "mount_point" in glob_dict:
+    # The caller knows the mount point and provides a dictionay needed by BuildImage().
+    image_properties = glob_dict
   else:
-    print >> sys.stderr, "error: unknown image file name ", image_filename
-    exit(1)
+    image_filename = os.path.basename(out_file)
+    mount_point = ""
+    if image_filename == "system.img":
+      mount_point = "system"
+    elif image_filename == "userdata.img":
+      mount_point = "data"
+    elif image_filename == "cache.img":
+      mount_point = "cache"
+    elif image_filename == "vendor.img":
+      mount_point = "vendor"
+    elif image_filename == "oem.img":
+      mount_point = "oem"
+    else:
+      print >> sys.stderr, "error: unknown image file name ", image_filename
+      exit(1)
 
-  image_properties = ImagePropFromGlobalDict(glob_dict, mount_point)
+    image_properties = ImagePropFromGlobalDict(glob_dict, mount_point)
+
   if not BuildImage(in_dir, image_properties, out_file):
     print >> sys.stderr, "error: failed to build %s from %s" % (out_file, in_dir)
     exit(1)

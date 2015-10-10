@@ -38,7 +38,7 @@ except ImportError:
 # set this to the default remote to use in repo
 default_rem = "omnirom"
 # set this to the default revision to use (branch/tag name)
-default_rev = "android-5.0"
+default_rev = "android-5.1"
 # set this to the remote that you use for projects from your team repos
 # example fetch="https://github.com/omnirom"
 default_team_rem = "omnirom"
@@ -110,9 +110,9 @@ def iterate_manifests():
                 yield project
 
 
-def check_project_exists(url):
+def check_project_exists(url, revision, path):
     for project in iterate_manifests():
-        if project.get("name") == url:
+        if project.get("name") == url and project.get("revision") == revision and project.get("path") == path:
             return True
     return False
 
@@ -141,7 +141,7 @@ def indent(elem, level=0):
 def create_manifest_project(url, directory,
                             remote=default_rem,
                             revision=default_rev):
-    project_exists = check_project_exists(url)
+    project_exists = check_project_exists(url, revision, directory)
 
     if project_exists:
         return None
