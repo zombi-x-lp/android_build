@@ -176,6 +176,19 @@ while(True):
     ppaths = re.split('\s*:\s*', pline.decode())
     project_name_to_path[ppaths[1]] = ppaths[0]
 
+# Check for range of commits and rebuild array
+changelist = []
+for change in args.change_number:
+    c=str(change)
+    if '-' in c:
+        templist = c.split('-')
+        for i in range(int(templist[0]), int(templist[1]) + 1):
+            changelist.append(str(i))
+    else:
+        changelist.append(c)
+
+args.change_number = changelist
+
 # Iterate through the requested change numbers
 for change in args.change_number:
     if not args.quiet:
@@ -215,6 +228,7 @@ for change in args.change_number:
         project_name     = data['project']
         change_number    = data['_number']
         current_revision = data['revisions'][data['current_revision']]
+        status           = data['status']
         patch_number     = current_revision['_number']
         # Backwards compatibility
         if 'http' in current_revision['fetch']:
@@ -230,6 +244,11 @@ for change in args.change_number:
         committer_email  = current_revision['commit']['committer']['email']
         committer_date   = current_revision['commit']['committer']['date'].replace(date_fluff, '')
         subject          = current_revision['commit']['subject']
+
+        # Check if commit is not open, skip it.
+        if (status != 'OPEN' and status != 'NEW'): 
+            print("Change is not open. Skipping the cherry pick.")
+            continue;
 
         # Convert the project name to a project path
         #   - check that the project path exists
