@@ -201,3 +201,4 @@ def parse_device_from_folder(device):
         print("Your device can't be found in device sources..")
         location = parse_device_from_manifest(device)
     return location
+
